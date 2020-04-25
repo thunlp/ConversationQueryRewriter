@@ -6,6 +6,9 @@ To install the dependencies for ConversationQueryRewriter, use
 pip install -r requirements.txt
 ```
 
+### Train
+TODO
+
 ### Download Trained Models
 Two trained models can be downloaded with the following link: [Model-based+CV-0](https://thunlp.s3-us-west-1.amazonaws.com/Model-based%2BCV-0.zip) and [Rule-based+CV-1](https://thunlp.s3-us-west-1.amazonaws.com/Rule-based%2BCV-1.zip).
 
