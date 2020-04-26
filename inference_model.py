@@ -34,7 +34,6 @@ def top_p_filtering(logits, top_p=0.0, filter_value=-float('Inf')):
 
 class InferenceModel:
 
-
     def __init__(self, args):
         model_class, tokenizer_class = GPT2LMHeadModel, GPT2Tokenizer
         self.tokenizer = tokenizer_class.from_pretrained(args.model_path)

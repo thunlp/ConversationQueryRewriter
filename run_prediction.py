@@ -1,18 +1,12 @@
 
 import argparse
 import json
-import numpy as np
 import random
 import torch
 
 from inference_model import InferenceModel
+from utils import NUM_FOLD, set_seed
 
-def set_seed(args):
-    random.seed(args.seed)
-    np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
-    if args.n_gpu > 0:
-        torch.cuda.manual_seed_all(args.seed)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -22,6 +16,9 @@ def main():
                         help="Input json file for predictions")
     parser.add_argument('--output_file', type=str, required=True,
                         help="Output json file for predictions")
+    parser.add_argument("--cross_validate", action='store_true',
+                        help="Set when doing cross validation")
+
     parser.add_argument("--length", type=int, default=20,
                         help="Maximum length of output sequence")
     parser.add_argument("--temperature", type=float, default=0.0,
@@ -41,14 +38,29 @@ def main():
     if args.length < 0:
         args.length = MAX_LENGTH  # avoid infinite loop
 
-    inference_model = InferenceModel(args)
+    if not args.cross_validate:
+        inference_model = InferenceModel(args)
+        with open(args.input_file , 'r') as fin, open(args.output_file, 'w') as fout:
+            for line in fin:
+                record = json.loads(line)
+                prediction = inference_model.predict(record['input'])
+                record['output'] = prediction
+                fout.write(json.dumps(record) + '\n')
+    else:
+        # K-Fold Cross Validation
+        model_path = args.model_path
+        with open(args.output_file, 'w') as fout:
+            for i in range(NUM_FOLD):
+                args.model_path = "%s-%d" % (model_path, i)
+                inference_model = InferenceModel(args)
+                input_file = "%s.%d" % (args.input_file, i)
+                with open(input_file , 'r') as fin:
+                    for line in fin:
+                        record = json.loads(line)
+                        prediction = inference_model.predict(record['input'])
+                        record['output'] = prediction
+                        fout.write(json.dumps(record) + '\n')
 
-    with open(args.input_file , 'r') as fin, open(args.output_file, 'w') as fout:
-        for line in fin:
-            record = json.loads(line)
-            prediction = inference_model.predict(record['input'])
-            record['output'] = prediction
-            fout.write(json.dumps(record) + '\n')
 
 if __name__ == '__main__':
     main()
