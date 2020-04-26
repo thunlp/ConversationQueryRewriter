@@ -1,11 +1,16 @@
 
 import argparse
 import json
+import logging
 import random
 import torch
 
+from tqdm import tqdm, trange
+
 from inference_model import InferenceModel
 from utils import NUM_FOLD, set_seed
+
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -13,7 +18,7 @@ def main():
     parser.add_argument("--model_path", default=None, type=str, required=True,
                         help="Path to pre-trained model or shortcut name")
     parser.add_argument('--input_file', type=str, required=True, 
-                        help="Input json file for predictions")
+                        help="Input json file for predictions. Do not add fold suffix when cross validate, i.e. use 'data/eval_topics.jsonl' instead of 'data/eval_topics.jsonl.0'")
     parser.add_argument('--output_file', type=str, required=True,
                         help="Output json file for predictions")
     parser.add_argument("--cross_validate", action='store_true',
@@ -34,6 +39,10 @@ def main():
     args.n_gpu = torch.cuda.device_count()
     set_seed(args)
 
+    logging.basicConfig(format = '%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
+                        datefmt = '%m/%d/%Y %H:%M:%S',
+                        level = logging.INFO)
+
     MAX_LENGTH = 100
     if args.length < 0:
         args.length = MAX_LENGTH  # avoid infinite loop
@@ -41,7 +50,7 @@ def main():
     if not args.cross_validate:
         inference_model = InferenceModel(args)
         with open(args.input_file , 'r') as fin, open(args.output_file, 'w') as fout:
-            for line in fin:
+            for line in tqdm(fin, desc="Predict"):
                 record = json.loads(line)
                 prediction = inference_model.predict(record['input'])
                 record['output'] = prediction
@@ -51,15 +60,17 @@ def main():
         model_path = args.model_path
         with open(args.output_file, 'w') as fout:
             for i in range(NUM_FOLD):
+                logger.info("Predict Fold #{}".format(i))
                 args.model_path = "%s-%d" % (model_path, i)
                 inference_model = InferenceModel(args)
                 input_file = "%s.%d" % (args.input_file, i)
                 with open(input_file , 'r') as fin:
-                    for line in fin:
+                    for line in tqdm(fin, desc="Predict"):
                         record = json.loads(line)
                         prediction = inference_model.predict(record['input'])
                         record['output'] = prediction
                         fout.write(json.dumps(record) + '\n')
+    logger.info("Prediction saved to %s", args.output_file)
 
 
 if __name__ == '__main__':
