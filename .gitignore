@@ -1,3 +1,6 @@
+*.swp
+*.log
 __pycache__/*
+data/*
 models/*
 outputs/*
