@@ -7,8 +7,8 @@ import torch
 
 from tqdm import tqdm, trange
 
-from inference_model import InferenceModel
-from utils import NUM_FOLD, set_seed
+from cqr.inference_model import InferenceModel
+from cqr.utils import NUM_FOLD, set_seed
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +21,8 @@ def main():
                         help="Input json file for predictions. Do not add fold suffix when cross validate, i.e. use 'data/eval_topics.jsonl' instead of 'data/eval_topics.jsonl.0'")
     parser.add_argument('--output_file', type=str, required=True,
                         help="Output json file for predictions")
+    parser.add_argument("--cross_validate", action='store_true',
+                        help="Set when doing cross validation")
 
     parser.add_argument("--length", type=int, default=20,
                         help="Maximum length of output sequence")
@@ -45,27 +47,30 @@ def main():
     if args.length < 0:
         args.length = MAX_LENGTH  # avoid infinite loop
 
-    model_path = args.model_path
-    for i in range(NUM_FOLD):
-        args.model_path = "%s-%d" % (model_path, i)
-        logger.info("Predict using Model {}".format(args.model_path))
+    if not args.cross_validate:
         inference_model = InferenceModel(args)
-        output_file = "%s.%d" % (args.output_file, i)
-        with open(args.input_file, 'r') as fin, open(output_file, 'w') as fout:
+        with open(args.input_file , 'r') as fin, open(args.output_file, 'w') as fout:
             for line in tqdm(fin, desc="Predict"):
-                splitted = (line[:-1] if line[-1] == '\n' else line).split('\t')
-                queries = splitted[1:]
-                topic_number = splitted[0]
-                i = 1
-                predictions = [queries[0]]
-                for query in queries[1:]:
-                    input_sents = queries[:i]
-                    prediction = inference_model.predict(record['input'])
-                    predictions.append(prediction)
-                    target_sent = query
-                    i += 1
-                    output_line = json.dumps({"topic_number": topic_number, "query_number": i, "input": predictions, "target": target_sent})
-                    fout.write(output_line + "\n")
+                record = json.loads(line)
+                prediction = inference_model.predict(record['input'])
+                record['output'] = prediction
+                fout.write(json.dumps(record) + '\n')
+    else:
+        # K-Fold Cross Validation
+        model_path = args.model_path
+        with open(args.output_file, 'w') as fout:
+            for i in range(NUM_FOLD):
+                logger.info("Predict Fold #{}".format(i))
+                args.model_path = "%s-%d" % (model_path, i)
+                inference_model = InferenceModel(args)
+                input_file = "%s.%d" % (args.input_file, i)
+                with open(input_file , 'r') as fin:
+                    for line in tqdm(fin, desc="Predict"):
+                        record = json.loads(line)
+                        prediction = inference_model.predict(record['input'])
+                        record['output'] = prediction
+                        fout.write(json.dumps(record) + '\n')
+    logger.info("Prediction saved to %s", args.output_file)
 
 
 if __name__ == '__main__':

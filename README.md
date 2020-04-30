@@ -45,7 +45,7 @@ tar xvzf ann_session_dev.tar.gz
 ### Preprocess TREC CAsT 2019 Data
 Convert format and split fold for TREC CAsT 2019 data:
 ```
-python preprocess.py
+python cqr/preprocess.py
 ```
 
 
@@ -53,25 +53,25 @@ python preprocess.py
 ### Filter MS MARCO Conversatioanl Search Corpus
 First, we need to filter the MS MARCO Conversatioanl Search corpus. This can be done as follows:
 ```
-python weak_supervision/filter.py --input_file data/ms_marco/marco_ann_session.dev.all.tsv --output_file data/ms_marco/marco_ann_session.dev.all.filtered.tsv
+python cqr/weak_supervision/filter.py --input_file data/ms_marco/marco_ann_session.dev.all.tsv --output_file data/ms_marco/marco_ann_session.dev.all.filtered.tsv
 ```
 
 ### Rule-based Method
-You could use "weak\_supervision/rule\_based/apply\_rules.py" to generate weak supervision using Rule-based Method. For example:
+You could use "cqr/weak\_supervision/rule\_based/apply\_rules.py" to generate weak supervision using Rule-based Method. For example:
 ```
 mkdir data/weak_supervision_data
-python weak_supervision/rule_based/apply_rules.py --input_file data/ms_marco/marco_ann_session.dev.all.filtered.tsv --output_file data/weak_supervision_data/rule-based.jsonl --use_coreference --use_omission
+python cqr/weak_supervision/rule_based/apply_rules.py --input_file data/ms_marco/marco_ann_session.dev.all.filtered.tsv --output_file data/weak_supervision_data/rule-based.jsonl --use_coreference --use_omission
 ```
 
 ### Model-based Method
 Convert TREC CAsT data into training data for query simplify model:
 ```
-python weak_supervision/model_based/generate_training_data.py
+python cqr/weak_supervision/model_based/generate_training_data.py
 ```
 
 Then train query simplify models:
 ```
-nohup python run_training.py --output_dir=models/query-simplifier-bs2-e4 --train_file data/training_data_for_query_simplifier.jsonl --cross_validate --model_name_or_path=gpt2  --per_gpu_train_batch_size=2 --per_gpu_eval_batch_size=2 --num_train_epochs=4 --save_steps=-1 &> run_train_query_simplifier.log &
+nohup python cqr/run_training.py --output_dir=models/query-simplifier-bs2-e4 --train_file data/training_data_for_query_simplifier.jsonl --cross_validate --model_name_or_path=gpt2  --per_gpu_train_batch_size=2 --per_gpu_eval_batch_size=2 --num_train_epochs=4 --save_steps=-1 &> run_train_query_simplifier.log &
 ```
 
 Apply query simplify model on MS MARCO Conversatioanl Search data and generate weak supervision data for query rewriting model. Please note that this could be slow. For example:
@@ -83,20 +83,20 @@ python weak_supervision/model_based/generate_weak_supervision_data.py --model_pa
 ## Train
 Our models can be trained by:
 ```
-python run_training.py --model_name_or_path <pretrained_model_path> --train_file <input_json_file> --output_dir <output_model_path>
+python cqr/run_training.py --model_name_or_path <pretrained_model_path> --train_file <input_json_file> --output_dir <output_model_path>
 ```
 
 ### Cross Validation
 For example:
 ```
-nohup python run_training.py --output_dir=models/query-rewriter-cv-bs2-e4 --train_file data/eval_topics.jsonl --cross_validate --model_name_or_path=gpt2 --per_gpu_train_batch_size=2 --num_train_epochs=4 --save_steps=-1 &> run_train_query_rewriter_cv.log &
+nohup python cqr/run_training.py --output_dir=models/query-rewriter-cv-bs2-e4 --train_file data/eval_topics.jsonl --cross_validate --model_name_or_path=gpt2 --per_gpu_train_batch_size=2 --num_train_epochs=4 --save_steps=-1 &> run_train_query_rewriter_cv.log &
 ```
 You would get 5 models (e.g. models/model-medium-cv-s2-e4-\<i\> where i = 0..4) using the default setting (NUM\_FOLD=5).
 
 ### Rule-based
 For example:
 ```
-nohup python run_training.py --output_dir=models/query-rewriter-rule-based-bs2-e1 --train_file data/weak_supervision_data/rule-based.jsonl --model_name_or_path=gpt2 --per_gpu_train_batch_size=2 --save_steps=-1 &> run_train_query_rewriter_rule_based.log &
+nohup python cqr/run_training.py --output_dir=models/query-rewriter-rule-based-bs2-e1 --train_file data/weak_supervision_data/rule-based.jsonl --model_name_or_path=gpt2 --per_gpu_train_batch_size=2 --save_steps=-1 &> run_train_query_rewriter_rule_based.log &
 ```
 
 ### Model-based
@@ -122,19 +122,19 @@ Two trained models can be downloaded with the following link: [Model-based+CV-0]
 ## Inference
 You could use the following command to do inference:
 ```
-python run_prediction.py --model_path <model_path> --input_file <input_json_file> --output_file <output_json_file>
+python cqr/run_prediction.py --model_path <model_path> --input_file <input_json_file> --output_file <output_json_file>
 ```
 
 ### Cross Validation
 For example:
 ```
-python run_prediction.py --model_path=models/query-rewriter-cv-bs2-e4 --cross_validate --input_file=data/eval_topics.jsonl --output_file=cv-predictions.jsonl
+python cqr/run_prediction.py --model_path=models/query-rewriter-cv-bs2-e4 --cross_validate --input_file=data/eval_topics.jsonl --output_file=cv-predictions.jsonl
 ```
 
 ### Rule-based
 For example:
 ```
-python run_prediction.py --model_path=models/query-rewriter-rule-based-bs2-e1 --input_file=data/eval_topics.jsonl --output_file=rule-based-predictions.jsonl
+python cqr/run_prediction.py --model_path=models/query-rewriter-rule-based-bs2-e1 --input_file=data/eval_topics.jsonl --output_file=rule-based-predictions.jsonl
 ```
 
 ### Model-based

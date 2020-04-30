@@ -9,8 +9,8 @@ from torch.utils.data import DataLoader, Dataset, RandomSampler
 from tqdm import tqdm, trange
 from transformers import  GPT2Config, GPT2LMHeadModel, GPT2Tokenizer, AdamW, get_linear_schedule_with_warmup
 
-from dataset import QueryRewriteDataset
-from utils import NUM_FOLD, set_seed, special_tokens_dict
+from cqr.dataset import QueryRewriteDataset
+from cqr.utils import NUM_FOLD, set_seed, special_tokens_dict
 
 logger = logging.getLogger(__name__)
 

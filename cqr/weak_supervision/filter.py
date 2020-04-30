@@ -2,7 +2,7 @@
 import argparse
 import json
 
-from utils import QUESTION_WORD_LIST, OTHER_WORD_LIST
+from cqr.utils import QUESTION_WORD_LIST, OTHER_WORD_LIST
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

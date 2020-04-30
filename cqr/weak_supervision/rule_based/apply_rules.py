@@ -6,7 +6,7 @@ import random
 import spacy
 import tqdm
 
-from utils import QUESTION_WORD_LIST 
+from cqr.utils import QUESTION_WORD_LIST
 
 nlp = spacy.load("en_core_web_sm")
 

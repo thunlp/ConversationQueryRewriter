@@ -2,7 +2,7 @@
 import json
 import copy
 
-from utils import NUM_FOLD
+from cqr.utils import NUM_FOLD
 
 with open('data/evaluation_topics_v1.0.json', 'r') as fin:
     raw_data = json.load(fin)
@@ -25,10 +25,10 @@ topic_number_dict = {}
 data = []
 for group in raw_data:
     topic_number, description, turn, title = str(group['number']), group.get('description', ''), group['turn'], group.get('title', '')
-    query_rewrites = []
+    queries = []
     for query in turn:
-        query_number, original_query = str(query['number']), query['raw_utterance']
-        query_rewrites.append(all_annonated[topic_number][query_number])
+        query_number, raw_utterance = str(query['number']), query['raw_utterance']
+        queries.append(raw_utterance)
         if query_number == '1':
           continue
         record = {}
@@ -36,13 +36,13 @@ for group in raw_data:
         record['query_number'] = query_number
         record['description'] = description
         record['title'] = title
-        record['input'] = copy.deepcopy(query_rewrites)
-        record['target'] = original_query
+        record['input'] = copy.deepcopy(queries)
+        record['target'] = all_annonated[topic_number][query_number]
         if not topic_number in topic_number_dict:
             topic_number_dict[topic_number] = len(topic_number_dict)
         data.append(record)
 
-with open('data/training_data_for_query_simplifier.jsonl', 'w') as fout:
+with open('data/eval_topics.jsonl', 'w') as fout:
     for item in data:
         json_str = json.dumps(item, ensure_ascii=False)
         fout.write(json_str + '\n')
@@ -50,7 +50,7 @@ with open('data/training_data_for_query_simplifier.jsonl', 'w') as fout:
 # Split eval data into K-fold
 topic_per_fold = len(topic_number_dict) // NUM_FOLD
 for i in range(NUM_FOLD):
-    with open('data/training_data_for_query_simplifier.jsonl.%d' % i, 'w') as fout:
+    with open('data/eval_topics.jsonl.%d' % i, 'w') as fout:
         for item in data:
             idx = topic_number_dict[item['topic_number']]
             if idx // topic_per_fold == i:
