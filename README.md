@@ -71,13 +71,15 @@ python cqr/weak_supervision/model_based/generate_training_data.py
 
 Then train query simplify models:
 ```
-nohup python cqr/run_training.py --output_dir=models/query-simplifier-bs2-e4 --train_file data/training_data_for_query_simplifier.jsonl --cross_validate --model_name_or_path=gpt2  --per_gpu_train_batch_size=2 --per_gpu_eval_batch_size=2 --num_train_epochs=4 --save_steps=-1 &> run_train_query_simplifier.log &
+nohup python -u cqr/run_training.py --output_dir=models/query-simplifier-bs2-e4 --train_file data/training_data_for_query_simplifier.jsonl --cross_validate --model_name_or_path=gpt2  --per_gpu_train_batch_size=2 --per_gpu_eval_batch_size=2 --num_train_epochs=4 --save_steps=-1 &> run_train_query_simplifier.log &
 ```
+Since we use the evaluation data of TREC CAsT 2019 to train our query simplifier, we do it in a way of k-fold cross validation as we mentioned in the paper. Therefore, this command results in 5 models from different training folds.
 
 Apply query simplify model on MS MARCO Conversatioanl Search data and generate weak supervision data for query rewriting model. Please note that this could be slow. For example:
 ```
 python weak_supervision/model_based/generate_weak_supervision_data.py --model_path models/query-simplifier-bs2-e4 --input_file data/ms_marco/marco_ann_session.dev.all.filtered.tsv --output_file data/weak_supervision_data/model-based.jsonl
 ```
+This would generate 5 different version of weak supervision data (model-based.json.0, model-based.json.1, ..., model-based.json.4), each coming from one model.
 
 
 ## Train
@@ -89,29 +91,33 @@ python cqr/run_training.py --model_name_or_path <pretrained_model_path> --train_
 ### Cross Validation
 For example:
 ```
-nohup python cqr/run_training.py --output_dir=models/query-rewriter-cv-bs2-e4 --train_file data/eval_topics.jsonl --cross_validate --model_name_or_path=gpt2 --per_gpu_train_batch_size=2 --num_train_epochs=4 --save_steps=-1 &> run_train_query_rewriter_cv.log &
+nohup python -u cqr/run_training.py --output_dir=models/query-rewriter-cv-bs2-e4 --train_file data/eval_topics.jsonl --cross_validate --model_name_or_path=gpt2 --per_gpu_train_batch_size=2 --num_train_epochs=4 --save_steps=-1 &> run_train_query_rewriter_cv.log &
 ```
 You would get 5 models (e.g. models/model-medium-cv-s2-e4-\<i\> where i = 0..4) using the default setting (NUM\_FOLD=5).
 
 ### Rule-based
 For example:
 ```
-nohup python cqr/run_training.py --output_dir=models/query-rewriter-rule-based-bs2-e1 --train_file data/weak_supervision_data/rule-based.jsonl --model_name_or_path=gpt2 --per_gpu_train_batch_size=2 --save_steps=-1 &> run_train_query_rewriter_rule_based.log &
+nohup python -u cqr/run_training.py --output_dir=models/query-rewriter-rule-based-bs2-e1 --train_file data/weak_supervision_data/rule-based.jsonl --model_name_or_path=gpt2 --per_gpu_train_batch_size=2 --save_steps=-1 &> run_train_query_rewriter_rule_based.log &
 ```
 
 ### Model-based
-For example:
+Five query rewriting models could be trained each using data from one query simplifier. For example:
 ```
+nohup python -u cqr/run_training.py --output_dir=models/query-rewriter-model-based-bs2-e1-<i> --train_file data/weak_supervision_data/model-based.jsonl.<i> --model_name_or_path=gpt2 --per_gpu_train_batch_size=2 --save_steps=-1 &> run_train_query_rewriter_model_based_<i>.log &
 ```
+where i = 0, 1, ..., 4.
 
 ### Rule-based + CV
-For example:
+You could change the parameter 'model_name_or_path' in the Cross Validation example to the directory of the trained rule-based model. For example:
 ```
+nohup python -u cqr/run_training.py --output_dir=models/query-rewriter-rule-based-bs2-e1-cv-e4 --train_file data/eval_topics.jsonl --cross_validate --model_name_or_path=models/query-rewriter-rule-based-bs2-e1 --per_gpu_train_batch_size=2 --save_steps=-1 &> run_train_query_rewriter_rule_based_plus_cv.log &
 ```
 
 ### Model-based + CV
-For example:
+Don't forget to use '--init_from_multiple_models' in this setting. For example:
 ```
+nohup python -u cqr/run_training.py --output_dir=models/query-rewriter-model-based-bs2-e1-cv-e4 --train_file data/eval_topics.jsonl --cross_validate --init_from_multiple_models --model_name_or_path=models/query-rewriter-model-based-bs2-e1 --per_gpu_train_batch_size=2 --save_steps=-1 &> run_train_query_rewriter_model_based_plus_cv.log &
 ```
 
 
@@ -140,16 +146,19 @@ python cqr/run_prediction.py --model_path=models/query-rewriter-rule-based-bs2-e
 ### Model-based
 For example:
 ```
+python cqr/run_prediction.py --model_path=models/query-rewriter-model-based-bs2-e1 --cross_validate --input_file=data/eval_topics.jsonl --output_file=model-based-predictions.jsonl
 ```
 
 ### Rule-based + CV
 For example:
 ```
+python cqr/run_prediction.py --model_path=models/query-rewriter-rule-based-bs2-e1-cv-e4 --cross_validate --input_file=data/eval_topics.jsonl --output_file=rule-based-plus-cv-predictions.jsonl
 ```
 
 ### Model-based + CV
 For example:
 ```
+python cqr/run_prediction.py --model_path=models/query-rewriter-model-based-bs2-e1-cv-e4 --cross_validate --input_file=data/eval_topics.jsonl --output_file=model-based-plus-cv-predictions.jsonl
 ```
 
 
