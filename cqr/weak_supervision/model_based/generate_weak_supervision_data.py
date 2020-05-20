@@ -60,7 +60,7 @@ def main():
                 predictions = [queries[0]]
                 for query in queries[1:]:
                     input_sents = queries[:i]
-                    prediction = inference_model.predict(record['input'])
+                    prediction = inference_model.predict(input_sents)
                     predictions.append(prediction)
                     target_sent = query
                     i += 1
