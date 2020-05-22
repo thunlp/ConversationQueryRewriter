@@ -26,9 +26,11 @@ data = []
 for group in raw_data:
     topic_number, description, turn, title = str(group['number']), group.get('description', ''), group['turn'], group.get('title', '')
     query_rewrites = []
+    original_queries = []
     for query in turn:
         query_number, original_query = str(query['number']), query['raw_utterance']
         query_rewrites.append(all_annonated[topic_number][query_number])
+        original_queries.append(original_query)
         if query_number == '1':
           continue
         record = {}
@@ -36,7 +38,7 @@ for group in raw_data:
         record['query_number'] = query_number
         record['description'] = description
         record['title'] = title
-        record['input'] = copy.deepcopy(query_rewrites)
+        record['input'] = original_queries[:-1] + [query_rewrites[-1]]
         record['target'] = original_query
         if not topic_number in topic_number_dict:
             topic_number_dict[topic_number] = len(topic_number_dict)

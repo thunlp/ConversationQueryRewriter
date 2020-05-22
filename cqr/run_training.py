@@ -171,6 +171,7 @@ def main():
                         help="random seed for initialization")
 
     args = parser.parse_args()
+    print(args)
 
     if os.path.exists(args.output_dir) and os.listdir(args.output_dir) and not args.overwrite_output_dir:
         raise ValueError("Output directory ({}) already exists and is not empty. Use --overwrite_output_dir to overcome.".format(args.output_dir))
@@ -189,19 +190,26 @@ def main():
     set_seed(args)
 
     config_class, model_class, tokenizer_class = GPT2Config, GPT2LMHeadModel, GPT2Tokenizer
-    config = config_class.from_pretrained(args.model_name_or_path)
-    tokenizer = tokenizer_class.from_pretrained(args.model_name_or_path)
-    tokenizer.add_special_tokens(special_tokens_dict)
-    logger.info("Added sep_token (id: %s), pad_token (id: %s), bos_token (id: %s) and eos_token (id: %s)", tokenizer.sep_token_id, tokenizer.pad_token_id, tokenizer.bos_token_id, tokenizer.eos_token_id)
+    # config = config_class.from_pretrained(args.model_name_or_path)
+    # tokenizer = tokenizer_class.from_pretrained(args.model_name_or_path)
+    # tokenizer.add_special_tokens(special_tokens_dict)
+    # logger.info("Added sep_token (id: %s), pad_token (id: %s), bos_token (id: %s) and eos_token (id: %s)", tokenizer.sep_token_id, tokenizer.pad_token_id, tokenizer.bos_token_id, tokenizer.eos_token_id)
 
-    if args.block_size <= 0:
-        args.block_size = tokenizer.max_len_single_sentence
-    args.block_size = min(args.block_size, tokenizer.max_len_single_sentence)
+    # if args.block_size <= 0:
+    #     args.block_size = tokenizer.max_len_single_sentence
+    # args.block_size = min(args.block_size, tokenizer.max_len_single_sentence)
 
     if not args.cross_validate:
+        config = config_class.from_pretrained(args.model_name_or_path)
+        tokenizer = tokenizer_class.from_pretrained(args.model_name_or_path)
+        tokenizer.add_special_tokens(special_tokens_dict)
         model = model_class.from_pretrained(args.model_name_or_path)
         model.resize_token_embeddings(len(tokenizer))  # resize
         model.to(args.device)
+	
+        if args.block_size <= 0:
+            args.block_size = tokenizer.max_len_single_sentence
+        args.block_size = min(args.block_size, tokenizer.max_len_single_sentence)
 
         # Training
         logger.info("Training/evaluation parameters %s", args)
@@ -225,9 +233,16 @@ def main():
         for i in range(NUM_FOLD):
             logger.info("Training Fold #{}".format(i))
             suffix = ('-' + str(i)) if args.init_from_multiple_models else ''
+            config = config_class.from_pretrained(args.model_name_or_path + suffix)
+            tokenizer = tokenizer_class.from_pretrained(args.model_name_or_path + suffix)
+            tokenizer.add_special_tokens(special_tokens_dict)
             model = model_class.from_pretrained(args.model_name_or_path + suffix)
             model.resize_token_embeddings(len(tokenizer))  # resize
             model.to(args.device)
+
+            if args.block_size <= 0:
+                args.block_size = tokenizer.max_len_single_sentence
+            args.block_size = min(args.block_size, tokenizer.max_len_single_sentence)
     
             logger.info("Training/evaluation parameters %s", args)
             train_files = ["%s.%d" % (args.train_file, j) for j in range(NUM_FOLD) if j != i]

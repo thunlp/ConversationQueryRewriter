@@ -3,4 +3,7 @@
 */__pycache__/*
 data/*
 models/*
+results/*
 outputs/*
+.venv/*
+.vscode/*
