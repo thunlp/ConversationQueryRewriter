@@ -7,3 +7,4 @@ results/*
 outputs/*
 .venv/*
 .vscode/*
+*.jsonl

@@ -52,7 +52,6 @@ def main():
         inference_model = InferenceModel(args)
         output_file = "%s.%d" % (args.output_file, i)
         with open(args.input_file, 'r') as fin, open(output_file, 'w') as fout:
-            print(output_file)
             all_lines = fin.readlines()
             for line in tqdm(all_lines, desc="Predict"):
                 splitted = (line[:-1] if line[-1] == '\n' else line).split('\t')

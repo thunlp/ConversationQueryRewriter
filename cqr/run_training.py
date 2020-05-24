@@ -170,8 +170,6 @@ def main():
     parser.add_argument('--seed', type=int, default=42,
                         help="random seed for initialization")
 
-    args = parser.parse_args()
-    print(args)
 
     if os.path.exists(args.output_dir) and os.listdir(args.output_dir) and not args.overwrite_output_dir:
         raise ValueError("Output directory ({}) already exists and is not empty. Use --overwrite_output_dir to overcome.".format(args.output_dir))
@@ -190,14 +188,6 @@ def main():
     set_seed(args)
 
     config_class, model_class, tokenizer_class = GPT2Config, GPT2LMHeadModel, GPT2Tokenizer
-    # config = config_class.from_pretrained(args.model_name_or_path)
-    # tokenizer = tokenizer_class.from_pretrained(args.model_name_or_path)
-    # tokenizer.add_special_tokens(special_tokens_dict)
-    # logger.info("Added sep_token (id: %s), pad_token (id: %s), bos_token (id: %s) and eos_token (id: %s)", tokenizer.sep_token_id, tokenizer.pad_token_id, tokenizer.bos_token_id, tokenizer.eos_token_id)
-
-    # if args.block_size <= 0:
-    #     args.block_size = tokenizer.max_len_single_sentence
-    # args.block_size = min(args.block_size, tokenizer.max_len_single_sentence)
 
     if not args.cross_validate:
         config = config_class.from_pretrained(args.model_name_or_path)
