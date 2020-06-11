@@ -1,5 +1,7 @@
 # ConversationQueryRewriter
 
+This repo contains data and code for SIGIR 2020 paper ["Few-Shot Generative Conversational Query Rewriting"](https://arxiv.org/abs/2006.05009).
+
 ## Dependencies
 We require python >= 3.5, pytorch, transformer 2.2.0, and a handful of other supporting libraries. To install dependencies use
 ```
