@@ -165,7 +165,7 @@ nohup python -u cqr/run_training.py --output_dir=models/query-rewriter-self-lear
 
 ## Download Trained Models
 
-Two trained models can be downloaded with the following link: [Self-learn+CV-0](https://thunlp.s3-us-west-1.amazonaws.com/Model-based%2BCV-0.zip) and [Rule-based+CV-1](https://thunlp.s3-us-west-1.amazonaws.com/Rule-based%2BCV-1.zip). We made minor changes to the code, so the result may be slightly different from the paper.
+Two trained models can be downloaded with the following link: [Self-learn+CV-0](https://thunlp.s3-us-west-1.amazonaws.com/Self-Learn%2BCV-0.zip) and [Rule-based+CV-1](https://thunlp.s3-us-west-1.amazonaws.com/Rule-based%2BCV-1.zip). We made minor changes to the code, so the result may be slightly different from the paper.
 
 
 ## Inference
