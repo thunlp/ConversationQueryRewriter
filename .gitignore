@@ -2,7 +2,6 @@
 *.log
 */__pycache__/*
 models/*
-results/*
 outputs/*
 .venv/*
 .vscode/*
