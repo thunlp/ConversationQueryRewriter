@@ -2,7 +2,31 @@
 
 This repo contains data and code for SIGIR 2020 paper ["Few-Shot Generative Conversational Query Rewriting"](https://arxiv.org/abs/2006.05009).
 
-[TOC]
+- [ConversationQueryRewriter](#conversationqueryrewriter)
+  * [Dependencies](#dependencies)
+  * [Data](#data)
+    + [TREC CAsT 2019 Data](#trec-cast-2019-data)
+    + [MS MARCO Conversatioanl Search Corpus](#ms-marco-conversatioanl-search-corpus)
+    + [Preprocess TREC CAsT 2019 Data](#preprocess-trec-cast-2019-data)
+  * [Generate Weak Supervision Data](#generate-weak-supervision-data)
+    + [Filter MS MARCO Conversatioanl Search Corpus](#filter-ms-marco-conversatioanl-search-corpus)
+    + [Rule-based Method](#rule-based-method)
+    + [Self-learn Method](#self-learn-method)
+  * [Train](#train)
+    + [Cross-validation on TREC CAsT 2019](#cross-validation-on-trec-cast-2019)
+    + [Rule-based](#rule-based)
+    + [Self-learn](#self-learn)
+    + [Rule-based + CV](#rule-based---cv)
+    + [Self-learn + CV](#self-learn---cv)
+  * [Download Trained Models](#download-trained-models)
+  * [Inference](#inference)
+    + [Cross-validation](#cross-validation)
+    + [Rule-based](#rule-based-1)
+    + [Self-learn](#self-learn-1)
+    + [Rule-based + CV](#rule-based---cv-1)
+    + [Self-learn + CV](#self-learn---cv-1)
+  * [Results](#results)
+  * [Contact](#contact)
 
 ## Dependencies
 
@@ -178,7 +202,7 @@ You can use the following command to do inference:
 python cqr/run_prediction.py --model_path <model_path> --input_file <input_json_file> --output_file <output_json_file>
 ```
 
-### Cross Validation
+### Cross-validation
 
 For example:
 
