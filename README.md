@@ -2,6 +2,32 @@
 
 This repo contains data and code for SIGIR 2020 paper ["Few-Shot Generative Conversational Query Rewriting"](https://arxiv.org/abs/2006.05009).
 
+- [ConversationQueryRewriter](#conversationqueryrewriter)
+  * [Dependencies](#dependencies)
+  * [Data](#data)
+    + [TREC CAsT 2019 Data](#trec-cast-2019-data)
+    + [MS MARCO Conversatioanl Search Corpus](#ms-marco-conversatioanl-search-corpus)
+    + [Preprocess TREC CAsT 2019 Data](#preprocess-trec-cast-2019-data)
+  * [Generate Weak Supervision Data](#generate-weak-supervision-data)
+    + [Filter MS MARCO Conversatioanl Search Corpus](#filter-ms-marco-conversatioanl-search-corpus)
+    + [Rule-based Method](#rule-based-method)
+    + [Self-learn Method](#self-learn-method)
+  * [Train](#train)
+    + [Cross-validation on TREC CAsT 2019](#cross-validation-on-trec-cast-2019)
+    + [Rule-based](#rule-based)
+    + [Self-learn](#self-learn)
+    + [Rule-based + CV](#rule-based---cv)
+    + [Self-learn + CV](#self-learn---cv)
+  * [Download Trained Models](#download-trained-models)
+  * [Inference](#inference)
+    + [Cross-validation](#cross-validation)
+    + [Rule-based](#rule-based-1)
+    + [Self-learn](#self-learn-1)
+    + [Rule-based + CV](#rule-based---cv-1)
+    + [Self-learn + CV](#self-learn---cv-1)
+  * [Results](#results)
+  * [Contact](#contact)
+
 ## Dependencies
 
 We require python >= 3.6, pytorch, transformers 2.3.0, and a handful of other supporting libraries. To install dependencies use
@@ -176,7 +202,7 @@ You can use the following command to do inference:
 python cqr/run_prediction.py --model_path <model_path> --input_file <input_json_file> --output_file <output_json_file>
 ```
 
-### Cross Validation
+### Cross-validation
 
 For example:
 
@@ -213,7 +239,19 @@ For example:
 ```
 python cqr/run_prediction.py --model_path=models/query-rewriter-model-based-bs2-e1-cv-e4 --cross_validate --input_file=data/eval_topics.jsonl --output_file=model-based-plus-cv-predictions.jsonl
 ```
+## Results
 
+Our BERT runs and GPT-2 rewrites are placed in the `results` folder.
+
+|Methods|NDCG@3|Rewrites|BERT runs|
+|-------|------|--------|---------|
+|Original|0.304|N/A|`bert_base_run_raw.trec`|
+|Oracle|0.544|N/A|`bert_base_run_oracle.trec`|
+|Cross-validation|0.467|`query_rewriter_output_cv.jsonlines`|`bert_base_run_cv.trec`|
+|Rule-based|0.437|`query_rewriter_output_rule_based.jsonlines`|`bert_base_run_rule_based.trec`|
+|Self-learn|0.435|`query_rewriter_output_self_learn.jsonlines`|`bert_base_run_self_learn.trec`|
+|Rule-based + CV|0.492|`query_rewriter_output_rule_based_cv.jsonlines`|`bert_base_run_rule_based_cv.trec`|
+|Self-learn + CV|0.491|`query_rewriter_output_self_learn_cv.jsonlines`|`bert_base_run_self_learn_cv.trec`|
 
 ## Contact
 
