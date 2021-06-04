@@ -132,7 +132,7 @@ Since we use the evaluation data of TREC CAsT 2019 to train our query simplifier
 Then apply the models on the filtered MS MARCO Conversatioanl Search data and generate weak supervision data for query rewriting model. Please note that this could be slow. For example:
 
 ```
-python weak_supervision/self_learn/generate_weak_supervision_data.py --model_path models/query-simplifier-bs2-e4 --input_file data/ms_marco/marco_ann_session.dev.all.filtered.tsv --output_file data/weak_supervision_data/self-learn.jsonl
+python cqr/weak_supervision/self_learn/generate_weak_supervision_data.py --model_path models/query-simplifier-bs2-e4 --input_file data/ms_marco/marco_ann_session.dev.all.filtered.tsv --output_file data/weak_supervision_data/self-learn.jsonl
 ```
 
 This would generate 5 different version of weak supervision data (self-learn.json.0, self-learn.json.1, ..., self-learn.json.4), each coming from one model.
